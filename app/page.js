@@ -411,20 +411,17 @@ export default function Home() {
           experienceVisible ? styles.writerPanelVisible : ""
         } ${isFinished ? styles.writerPanelFinal : ""}`}
       >
-        {experienceVisible ? (
-          <button
-            type="button"
-            className={`${styles.inlineAction} ${styles.homeAction}`}
-            onClick={handleGoHome}
-          >
-            Home <span aria-hidden="true">→</span>
-          </button>
-        ) : null}
-
         {session ? (
           <div className={styles.userBar}>
             <span className={styles.userMeta}>{session.user.email}</span>
             <div className={styles.userBarActions}>
+              <button
+                type="button"
+                className={styles.inlineAction}
+                onClick={handleGoHome}
+              >
+                Home
+              </button>
               <button
                 type="button"
                 className={styles.inlineAction}

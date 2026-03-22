@@ -308,7 +308,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 18px;
+  gap: 14px;
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -334,10 +334,6 @@
 .inlineAction {
   padding: 0;
   font-size: 0.98rem;
-}
-
-.homeAction {
-  margin-bottom: 6px;
 }
 
 .finalActions {
@@ -526,6 +522,6 @@
   }
 
   .userBarActions {
-    gap: 14px;
+    gap: 12px;
   }
 }
