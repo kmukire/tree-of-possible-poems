@@ -228,6 +228,15 @@ export default function Home() {
     setSelectedArchivedPoem(null);
   };
 
+  const handleGoHome = () => {
+    resetPoem();
+    setIntroHidden(false);
+    setExperienceVisible(false);
+    setGenerationError("");
+    setAuthError("");
+    setAuthMessage("");
+  };
+
   const handleAuthSubmit = async () => {
     if (!supabase) {
       setAuthError("Missing Supabase environment variables.");
@@ -402,6 +411,16 @@ export default function Home() {
           experienceVisible ? styles.writerPanelVisible : ""
         } ${isFinished ? styles.writerPanelFinal : ""}`}
       >
+        {experienceVisible ? (
+          <button
+            type="button"
+            className={`${styles.inlineAction} ${styles.homeAction}`}
+            onClick={handleGoHome}
+          >
+            Home <span aria-hidden="true">→</span>
+          </button>
+        ) : null}
+
         {session ? (
           <div className={styles.userBar}>
             <span className={styles.userMeta}>{session.user.email}</span>

@@ -336,6 +336,10 @@
   font-size: 0.98rem;
 }
 
+.homeAction {
+  margin-bottom: 6px;
+}
+
 .finalActions {
   margin-top: 4px;
 }
