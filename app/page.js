@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import treeImage from "../assets/cleaner tree.jpg";
 import styles from "./page.module.css";
-import { fetchUserPoems, savePoem } from "../lib/poems";
+import { deletePoem, fetchUserPoems, savePoem } from "../lib/poems";
 import { getSupabaseBrowserClient } from "../lib/supabase/client";
 
 const TOTAL_ROUNDS = 5;
@@ -34,6 +34,7 @@ export default function Home() {
   const [saveStatus, setSaveStatus] = useState("");
   const [archiveVisible, setArchiveVisible] = useState(false);
   const [selectedArchivedPoem, setSelectedArchivedPoem] = useState(null);
+  const [isDeletingPoemId, setIsDeletingPoemId] = useState(null);
   const [hasRestoredState, setHasRestoredState] = useState(false);
 
   const supabase = getSupabaseBrowserClient();
@@ -379,6 +380,47 @@ export default function Home() {
     }
   };
 
+  const handleDeletePoem = async (poemId) => {
+    if (!supabase || !session?.user?.id) {
+      return;
+    }
+
+    const poemToDelete = savedPoems.find((poem) => poem.id === poemId);
+
+    if (!poemToDelete) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete this archived poem from ${new Date(
+        poemToDelete.createdAt
+      ).toLocaleDateString()}?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setArchiveError("");
+    setSaveStatus("");
+    setIsDeletingPoemId(poemId);
+
+    try {
+      await deletePoem(supabase, session.user.id, poemId);
+      setSavedPoems((current) => current.filter((poem) => poem.id !== poemId));
+
+      if (selectedArchivedPoem?.id === poemId) {
+        setSelectedArchivedPoem(null);
+      }
+    } catch (error) {
+      setArchiveError(
+        error instanceof Error ? error.message : "Could not delete poem."
+      );
+    } finally {
+      setIsDeletingPoemId(null);
+    }
+  };
+
   return (
     <main className={styles.page}>
       <div className={styles.backgroundLayer} aria-hidden="true">
@@ -556,29 +598,57 @@ export default function Home() {
                 ) : savedPoems.length > 0 ? (
                   <div className={styles.archiveGrid}>
                     {savedPoems.map((poem) => (
-                      <button
-                        key={poem.id}
-                        type="button"
-                        className={styles.archiveCard}
-                        onClick={() => setSelectedArchivedPoem(poem)}
-                      >
-                        <p className={styles.archiveDate}>
-                          {new Date(poem.createdAt).toLocaleDateString()}
-                        </p>
-                        <div className={styles.archivePreview}>
-                          {poem.lines.slice(0, 2).map((line, index) => (
-                            <p
-                              key={`${poem.id}-preview-${index}`}
-                              className={styles.archivePreviewLine}
-                            >
-                              {line}
-                            </p>
-                          ))}
+                      <article key={poem.id} className={styles.archiveCard}>
+                        <div className={styles.archiveCardTopRow}>
+                          <p className={styles.archiveDate}>
+                            {new Date(poem.createdAt).toLocaleDateString()}
+                          </p>
+                          <button
+                            type="button"
+                            className={styles.archiveDeleteButton}
+                            onClick={() => handleDeletePoem(poem.id)}
+                            aria-label={`Delete poem saved on ${new Date(
+                              poem.createdAt
+                            ).toLocaleDateString()}`}
+                            title="Delete poem"
+                            disabled={isDeletingPoemId === poem.id}
+                          >
+                            {isDeletingPoemId === poem.id ? (
+                              <span aria-hidden="true">...</span>
+                            ) : (
+                              <svg
+                                aria-hidden="true"
+                                viewBox="0 0 24 24"
+                                className={styles.archiveDeleteIcon}
+                              >
+                                <path
+                                  d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h2v8H7V9Zm4 0h2v8h-2V9Zm4 0h2v8h-2V9ZM6 7h12l-1 13H7L6 7Z"
+                                  fill="currentColor"
+                                />
+                              </svg>
+                            )}
+                          </button>
                         </div>
-                        <span className={styles.archiveOpen}>
-                          Open <span aria-hidden="true">→</span>
-                        </span>
-                      </button>
+                        <button
+                          type="button"
+                          className={styles.archiveOpenButton}
+                          onClick={() => setSelectedArchivedPoem(poem)}
+                        >
+                          <div className={styles.archivePreview}>
+                            {poem.lines.slice(0, 2).map((line, index) => (
+                              <p
+                                key={`${poem.id}-preview-${index}`}
+                                className={styles.archivePreviewLine}
+                              >
+                                {line}
+                              </p>
+                            ))}
+                          </div>
+                          <span className={styles.archiveOpen}>
+                            Open <span aria-hidden="true">→</span>
+                          </span>
+                        </button>
+                      </article>
                     ))}
                   </div>
                 ) : (
