@@ -80,6 +80,10 @@ function validateLines(lines) {
   );
 }
 
+function normalizeGeneratedLine(line) {
+  return line.trim().replace(/\bi\b/g, "I");
+}
+
 export async function POST(request) {
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json(
@@ -189,7 +193,7 @@ export async function POST(request) {
     }
 
     return NextResponse.json({
-      lines: parsed.lines.map((line) => line.trim()),
+      lines: parsed.lines.map(normalizeGeneratedLine),
     });
   } catch (error) {
     return NextResponse.json(
